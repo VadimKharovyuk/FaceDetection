@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="uk">
+
+<head th:replace="~{fragments/layout :: head('Профіль')}"></head>
+
+<body class="bg-light">
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<div class="container py-4" style="max-width:720px">
+
+    <a href="/profiles" class="btn btn-outline-secondary btn-sm mb-3">← Назад</a>
+
+    <!-- Flash -->
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="card border-0 shadow-lg overflow-hidden">
+
+        <!-- Gradient banner -->
+        <div style="height:130px;
+                    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);">
+        </div>
+
+        <!-- Аватар -->
+        <div class="text-center" style="margin-top:-60px">
+            <img th:if="${profile.avatarUrl() != null}"
+                 th:src="${profile.avatarUrl()}"
+                 class="rounded-circle border border-4 border-white shadow"
+                 style="width:120px; height:120px; object-fit:cover;"
+                 alt="Фото">
+            <div th:unless="${profile.avatarUrl() != null}"
+                 class="rounded-circle border border-4 border-white shadow bg-secondary
+                         d-inline-flex align-items-center justify-content-center"
+                 style="width:120px; height:120px; font-size:3rem;">
+                👤
+            </div>
+        </div>
+
+        <!-- Основна інформація -->
+        <div class="card-body text-center pt-2 pb-0">
+            <h3 class="fw-bold mb-1" th:text="${profile.fullName()}"></h3>
+            <span th:if="${profile.hasEmbedding()}"
+                  class="badge rounded-pill bg-success px-3 py-2">
+                ✅ Обличчя зареєстровано
+            </span>
+            <span th:unless="${profile.hasEmbedding()}"
+                  class="badge rounded-pill bg-warning text-dark px-3 py-2">
+                ⚠️ Обличчя не зареєстровано
+            </span>
+            <p th:if="${profile.biography()}"
+               th:text="${profile.biography()}"
+               class="text-muted mt-3 mb-0 px-3"></p>
+        </div>
+
+        <!-- Деталі -->
+        <div class="card-body">
+            <hr class="my-3">
+            <div class="row g-3 text-center">
+                <div class="col-6 col-md-3" th:if="${profile.email()}">
+                    <div class="p-2 rounded-3 bg-light">
+                        <div class="text-muted small">📧 Email</div>
+                        <div class="fw-semibold small text-truncate" th:text="${profile.email()}"></div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3" th:if="${profile.phoneNumber()}">
+                    <div class="p-2 rounded-3 bg-light">
+                        <div class="text-muted small">📞 Телефон</div>
+                        <div class="fw-semibold small" th:text="${profile.phoneNumber()}"></div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3" th:if="${profile.city()}">
+                    <div class="p-2 rounded-3 bg-light">
+                        <div class="text-muted small">📍 Місто</div>
+                        <div class="fw-semibold small" th:text="${profile.city()}"></div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3" th:if="${profile.birthDate()}">
+                    <div class="p-2 rounded-3 bg-light">
+                        <div class="text-muted small">🎂 Дата народження</div>
+                        <div class="fw-semibold small" th:text="${profile.birthDate()}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Дії -->
+        <div class="card-footer bg-white border-top-0 pt-0 pb-4 px-4">
+
+            <p class="text-muted small fw-semibold text-uppercase mb-3 mt-2">
+                Управління профілем
+            </p>
+
+            <!-- 1. Оновити аватар -->
+            <div class="mb-3">
+                <label class="form-label small fw-semibold">📷 Оновити аватар</label>
+                <form th:action="@{/profiles/{id}/avatar(id=${profile.id()})}"
+                      method="post" enctype="multipart/form-data"
+                      class="d-flex gap-2">
+                    <input type="file" name="file" accept="image/*"
+                           class="form-control form-control-sm" required>
+                    <button class="btn btn-sm btn-outline-primary text-nowrap">
+                        Завантажити
+                    </button>
+                </form>
+            </div>
+
+            <!-- 2. Реєстрація обличчя (з аугментацією — 3 embedding'и) -->
+            <div class="mb-2">
+                <label class="form-label small fw-semibold">
+                    🧠 Зареєструвати обличчя
+                    <span class="badge bg-primary ms-1">×3</span>
+                </label>
+                <form th:action="@{/profiles/{id}/face/augmented(id=${profile.id()})}"
+                      method="post" enctype="multipart/form-data"
+                      class="d-flex gap-2">
+                    <input type="file" name="file" accept="image/*"
+                           class="form-control form-control-sm" required>
+                    <button class="btn btn-sm btn-success text-nowrap">
+                        Зареєструвати
+                    </button>
+                </form>
+                <div class="form-text">
+                    Зберігає 3 варіанти: оригінал, дзеркало, яскравість — краща точність
+                </div>
+            </div>
+
+            <!-- 3. Реєстрація з поточного аватара -->
+            <form th:if="${profile.avatarUrl() != null}"
+                  th:action="@{/profiles/{id}/face/from-avatar(id=${profile.id()})}"
+                  method="post" class="mb-3">
+                <button class="btn btn-sm btn-outline-success w-100">
+                    🖼️ Зареєструвати з поточного аватара
+                </button>
+            </form>
+
+            <hr class="my-3">
+
+            <!-- Редагувати / Видалити -->
+            <div class="d-flex gap-2">
+                <a th:href="@{/profiles/{id}/edit(id=${profile.id()})}"
+                   class="btn btn-outline-secondary btn-sm flex-grow-1">
+                    ✏️ Редагувати
+                </a>
+                <form th:action="@{/profiles/{id}/delete(id=${profile.id()})}"
+                      method="post"
+                      onsubmit="return confirm('Видалити профіль?')">
+                    <button class="btn btn-outline-danger btn-sm">
+                        🗑️ Видалити
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:replace="~{fragments/layout :: scripts}"></script>
+</body>
+</html>
