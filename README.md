@@ -201,6 +201,11 @@ src/main/
 - Погане освітлення або низька роздільність фото дає similarity < 0.5
 - Рекомендується реєструвати 2-3 фото на профіль для кращої точності
 
+## Автор
+
+**Vadim Kharovyuk** — Java Backend розробник  
+🌐 [webscraft.org/blog/java-backend-rozrobnik-vadim-harovyuk](https://webscraft.org/blog/java-backend-rozrobnik-vadim-harovyuk)
+
 ## Ліцензія
 
 MIT
