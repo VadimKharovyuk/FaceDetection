@@ -19,7 +19,7 @@
 |-----------|-----------|
 | Backend | Spring Boot 4, Java 17 |
 | Face Detection | SCRFD (`det_10g.onnx`) |
-| Face Recognition | ArcFace R50 (`w600k_r50.onnx`) |
+| Face Recognition | ArcFace R50 (`w600k_r50.onnx`) або R100 (`glintr100.onnx`) |
 | ML Runtime | ONNX Runtime 1.19.0 |
 | Image Processing | JavaCV 1.5.10 |
 | Database | PostgreSQL + pgvector |
@@ -45,18 +45,51 @@ CREATE DATABASE FaceDetection;
 CREATE EXTENSION IF NOT EXISTS vector;
 ```
 
-### 3. ONNX моделі (~350MB, не в git)
+### 3. ONNX моделі (не в git)
 
-Скачай `buffalo_l.zip` з [InsightFace Releases](https://github.com/deepinsight/insightface/releases)
+Завантаж моделі з [InsightFace Releases](https://github.com/deepinsight/insightface/releases).
 
-Розпакуй і скопіюй три файли в `src/main/resources/models/`:
+Є два варіанти — обирай один:
+
+#### Варіант A — `buffalo_l.zip` (~275 MB) — стандартний
 
 ```
-src/main/resources/models/
-├── det_10g.onnx        (~17 MB)  — детекція обличь (SCRFD)
-├── w600k_r50.onnx      (~166 MB) — розпізнавання (ArcFace R50)
+buffalo_l.zip → розпакуй → скопіюй в src/main/resources/models/
+├── det_10g.onnx        (~17 MB)  — детекція (SCRFD)
+├── w600k_r50.onnx      (~166 MB) — розпізнавання ArcFace R50
 └── genderage.onnx      (~1 MB)   — стать і вік (опціонально)
 ```
+
+В `application.properties`:
+```properties
+app.models.recognition=classpath:models/w600k_r50.onnx
+```
+
+#### Варіант B — `antelopev2.zip` (~344 MB) — точніший ⭐
+
+```
+antelopev2.zip → розпакуй → скопіюй glintr100.onnx в src/main/resources/models/
+└── glintr100.onnx      (~280 MB) — розпізнавання ArcFace R100
+```
+
+Детекцію (`det_10g.onnx`) береш з `buffalo_l.zip`.
+
+В `application.properties`:
+```properties
+app.models.recognition=classpath:models/glintr100.onnx
+```
+
+| | buffalo_l (R50) | antelopev2 (R100) |
+|--|-----------------|-------------------|
+| Датасет | WebFace 600K | Glint360K (17M фото) |
+| Точність LFW | 99.7% | 99.8% |
+| Швидкість на M1 | ~80ms | ~150ms |
+| Стійкість до кепок / нічного освітлення | середня | краща |
+
+> ⚠️ При зміні моделі — видали старі embeddings з БД і перереєструй обличчя:
+> ```sql
+> DELETE FROM face_embedding;
+> ```
 
 > ⚠️ Файли `.onnx` додані в `.gitignore` через розмір. Кожен розробник завантажує їх окремо.
 
